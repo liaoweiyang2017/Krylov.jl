@@ -6,6 +6,7 @@ include("test_stats.jl")
 
 include("test_fom.jl")
 include("test_gmres.jl")
+include("test_usymlqr.jl")
 include("test_bicgstab.jl")
 include("test_usymlq.jl")
 include("test_tricg.jl")

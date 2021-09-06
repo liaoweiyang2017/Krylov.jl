@@ -41,6 +41,7 @@
   usymlq_solver = UsymlqSolver(m, n, Vector{Float64})
   tricg_solver = TricgSolver(m, n, Vector{Float64})
   trimr_solver = TrimrSolver(m, n, Vector{Float64})
+  usymlqr_solver = UsymlqSolver(n, m, Vector{Float64})
   
   for i = 1 : 3
     A  = i * A
@@ -142,6 +143,9 @@
     @test solver.stats.solved
 
     solver = solve!(trimr_solver, Au, c, b)
+    @test solver.stats.solved
+
+    solver = solve!(usymlqr_solver, Ao, b, c)
     @test solver.stats.solved
   end
 end

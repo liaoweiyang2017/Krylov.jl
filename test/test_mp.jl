@@ -1,6 +1,6 @@
 @testset "mp" begin
   n = 5
-  for fn in (:cg, :cgls, :usymqr, :cgne, :cgs, :crmr, :cg_lanczos, :dqgmres, :diom, :cr,
+  for fn in (:cg, :cr, :cgls, :usymqr, :cgne, :cgs, :crmr, :cg_lanczos, :dqgmres, :diom, :usymlqr,
              :lslq, :lsqr, :lsmr, :lnlq, :craig, :bicgstab, :craigmr, :crls, :symmlq, :minres,
              :bilq, :minres_qlp, :qmr, :usymlq, :tricg, :trimr, :trilqr, :bilqr, :gmres, :fom)
     for T in (Float16, Float32, Float64, BigFloat)
@@ -12,7 +12,7 @@
         x, _ = @eval $fn($A, $b, $c)
       elseif fn in (:trilqr, :bilqr)
         x, t, _ = @eval $fn($A, $b, $c)
-      elseif fn in (:tricg, :trimr)
+      elseif fn in (:usymlqr, :tricg, :trimr)
         x, y, _ = @eval $fn($A, $b, $c)
       elseif fn in (:lnlq, :craig, :craigmr)
         x, y, _ = @eval $fn($A, $b)
@@ -29,6 +29,10 @@
       if fn in (:tricg, :trimr)
         @test norm(x + A * y - b) ≤ Κ * (atol + norm([b; c]) * rtol)
         @test norm(A' * x - y - c) ≤ Κ * (atol + norm([b; c]) * rtol)
+        @test eltype(y) == T
+      elseif fn == :usymlqr
+        @test norm(x + A * y - b) ≤ Κ * (atol + norm([b; c]) * rtol)
+        @test norm(A' * x - c) ≤ Κ * (atol + norm([b; c]) * rtol)
         @test eltype(y) == T
       else
         @test norm(A * x - b) ≤ Κ * (atol + norm(b) * rtol)

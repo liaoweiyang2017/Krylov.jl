@@ -3,7 +3,7 @@ CgLanczosShiftSolver, MinresQlpSolver, DqgmresSolver, DiomSolver, UsymlqSolver,
 UsymqrSolver, TricgSolver, TrimrSolver, TrilqrSolver, CgsSolver, BicgstabSolver,
 BilqSolver, QmrSolver, BilqrSolver, CglsSolver, CrlsSolver, CgneSolver, CrmrSolver,
 LslqSolver, LsqrSolver, LsmrSolver, LnlqSolver, CraigSolver, CraigmrSolver,
-GmresSolver, FomSolver
+GmresSolver, FomSolver, UsymlqrSolver
 
 export solve!
 
@@ -1429,6 +1429,47 @@ mutable struct FomSolver{T,S} <: KrylovSolver{T,S}
 end
 
 """
+Type for storing the vectors required by the in-place version of USYMLQR.
+
+The outer constructors
+
+    solver = UsymlqrSolver(n, m, S)
+    solver = UsymlqrSolver(A, b)
+
+may be used in order to create these vectors.
+"""
+mutable struct UsymlqrSolver{T,S} <: KrylovSolver{T,S}
+  xₖ      :: S
+  yₖ      :: S
+  M⁻¹vₖ₋₁ :: S
+  M⁻¹vₖ   :: S
+  N⁻¹uₖ₋₁ :: S
+  N⁻¹uₖ   :: S
+  vₖ      :: S
+  uₖ      :: S
+
+  function UsymlqrSolver(n, m, S)
+    T       = eltype(S)
+    xₖ      = S(undef, n)
+    yₖ      = S(undef, m)
+    M⁻¹vₖ₋₁ = S(undef, n)
+    M⁻¹vₖ   = S(undef, n)
+    N⁻¹uₖ₋₁ = S(undef, m)
+    N⁻¹uₖ   = S(undef, m)
+    vₖ      = S(undef, 0)
+    uₖ      = S(undef, 0)
+    solver = new{T,S}(xₖ, yₖ, M⁻¹vₖ₋₁, M⁻¹vₖ, N⁻¹uₖ₋₁, N⁻¹uₖ, vₖ, uₖ)
+    return solver
+  end
+
+  function UsymlqrSolver(A, b)
+    n, m = size(A)
+    S = ktypeof(b)
+    UsymlqrSolver(n, m, S)
+  end
+end
+
+"""
     solve!(solver, args...; kwargs...)
 
 Use the in-place Krylov method associated to `solver`.
@@ -1467,6 +1508,7 @@ for (KS, fun) in [
   (QmrSolver           , :qmr!       )
   (GmresSolver         , :gmres!     )
   (FomSolver           , :fom!       )
+  (UsymlqrSolver       , :usymlqr!   )
 ]
   @eval begin
     @inline solve!(solver :: $KS, args...; kwargs...) = $(fun)(solver, args...; kwargs...)

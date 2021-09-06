@@ -21,9 +21,10 @@ include("gmres.jl")
 
 include("usymlq.jl")
 include("usymqr.jl")
+include("usymlqr.jl")
+include("trilqr.jl")
 include("tricg.jl")
 include("trimr.jl")
-include("trilqr.jl")
 
 include("cgs.jl")
 include("bicgstab.jl")
